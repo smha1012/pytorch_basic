@@ -40,7 +40,6 @@ class Generator(nn.Module):
             nn.ConvTranspose2d(image_size, 1, kernel_size=4,
                                stride=2, padding=1),
             nn.Tanh())
-        # 注意：白黒画像なので出力チャネルは1つだけ
 
     def forward(self, z):
         out = self.layer1(z)
@@ -60,7 +59,6 @@ class Discriminator(nn.Module):
             nn.Conv2d(1, image_size, kernel_size=4,
                       stride=2, padding=1),
             nn.LeakyReLU(0.1, inplace=True))
-        # 注意：白黒画像なので入力チャネルは1つだけ
 
         self.layer2 = nn.Sequential(
             nn.Conv2d(image_size, image_size*2, kernel_size=4,
@@ -85,8 +83,8 @@ class Discriminator(nn.Module):
         out = self.layer3(out)
         out = self.layer4(out)
 
-        feature = out  # 最後にチャネルを1つに集約する手前の情報
-        feature = feature.view(feature.size()[0], -1)  # 2次元に変換
+        feature = out
+        feature = feature.view(feature.size()[0], -1)
 
         out = self.last(out)
 
