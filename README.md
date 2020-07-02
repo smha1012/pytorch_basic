@@ -1,0 +1,3 @@
+# pytorch_anogan
+
+Minimal implementation of anogan with pytorch...
