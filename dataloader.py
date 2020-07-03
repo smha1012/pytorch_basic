@@ -26,6 +26,10 @@ def make_datapath_list():
 
 ## 이미지 전처리 클래스
 class ImageTransform():
+    '''
+    __init__은 객체 생성될 때 불러와짐 / __call__은 인스턴스 생성될 때 불러와짐
+    __call__함수는 이 클래스의 객체가 함수처럼 호출되면 실행되는 함수임...
+    '''
     def __init__(self, mean, std):
         self.data_transform = transforms.Compose([
             transforms.ToTensor(),

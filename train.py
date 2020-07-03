@@ -36,7 +36,7 @@ input_z = input_z.view(input_z.size(0), input_z.size(1), 1, 1)
 fake_images = G(input_z)
 
 img_transformed = fake_images[0][0].detach().numpy()
-plt.imshow(img_transformed, 'gray')
+#plt.imshow(img_transformed, 'gray')
 #plt.show()
 #plt.close()
 
@@ -78,11 +78,11 @@ print(images.size())  # torch.Size([64, 1, 64, 64])
 def weights_init(m):
     classname = m.__class__.__name__
     if classname.find('Conv') != -1:
-        # Conv2dとConvTranspose2dの初期化
+        # Conv2d, ConvTranspose2d 초기화
         nn.init.normal_(m.weight.data, 0.0, 0.02)
         nn.init.constant_(m.bias.data, 0)
     elif classname.find('BatchNorm') != -1:
-        # BatchNorm2dの初期化
+        # BatchNorm2d 초기화
         nn.init.normal_(m.weight.data, 1.0, 0.02)
         nn.init.constant_(m.bias.data, 0)
 
@@ -114,8 +114,8 @@ def train_model(G, D, dataloader, num_epochs):
     G.to(device)
     D.to(device)
 
-    G.train()  # モデルを訓練モードに
-    D.train()  # モデルを訓練モードに
+    G.train()  # 훈련모드
+    D.train()  # 훈련모드
 
     ## 네트워크가 어느정도 고정이 되면 가속화
     torch.backends.cudnn.benchmark = True
@@ -221,3 +221,66 @@ def train_model(G, D, dataloader, num_epochs):
 num_epochs = 300
 G_update, D_update = train_model(
     G, D, dataloader=train_dataloader, num_epochs=num_epochs)
+
+### save model
+
+
+###
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+batch_size = 8
+z_dim = 20
+fixed_z = torch.randn(batch_size, z_dim)
+fixed_z = fixed_z.view(fixed_z.size(0), fixed_z.size(1), 1, 1)
+fake_images = G_update(fixed_z.to(device))
+
+### Anogan
+def Anomaly_score(x, fake_img, D, Lambda=0.1):
+    residual_loss = torch.abs(x - fake_img)
+    residual_loss = residual_loss.view(residual_loss.size()[0], -1)
+    residual_loss = torch.sum(residual_loss, dim=1)
+
+    _, x_feature = D(x)
+    _, G_feature = D(fake_img)
+
+    discrimination_loss = torch.abs(x_feature - G_feature)
+    discrimination_loss = discrimination_loss.view(discrimination_loss.size()[0], -1)
+    discrimination_loss = torch.sum(discrimination_loss, dim=1)
+
+    loss_each = (1-Lambda)*residual_loss + Lambda*discrimination_loss
+
+    total_loss = torch.sum(loss_each)
+
+    return total_loss, loss_each, residual_loss
+
+### test dataloader 작성
+def make_test_datapath_list():
+    train_img_list = list()
+
+    for img_idx in range(5):
+        img_path = "./data/test/img_7_" + str(img_idx) + ".jpg"
+        train_img_list.append(img_path)
+
+        img_path = "./data/test/img_8_" + str(img_idx) + ".jpg"
+        train_img_list.append(img_path)
+
+        img_path = "./data/test/img_2_" + str(img_idx) + ".jpg"
+        train_img_list.append(img_path)
+
+    return train_img_list
+
+test_img_list = make_test_datapath_list()
+
+mean = (0.5,)
+std = (0.5,)
+test_dataset = GAN_Img_Dataset(
+    file_list=test_img_list, transform=ImageTransform(mean, std))
+
+## dataloader 작성
+batch_size = 5
+
+test_dataloader = torch.utils.data.DataLoader(
+    test_dataset, batch_size=batch_size, shuffle=False)
+
+# .....ing
+
