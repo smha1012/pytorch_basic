@@ -225,14 +225,14 @@ G_update, D_update = train_model(
 ### save model
 
 
-###
+### 데이터 가시화 생략...
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-batch_size = 8
-z_dim = 20
-fixed_z = torch.randn(batch_size, z_dim)
-fixed_z = fixed_z.view(fixed_z.size(0), fixed_z.size(1), 1, 1)
-fake_images = G_update(fixed_z.to(device))
+#batch_size = 8
+#z_dim = 20
+#fixed_z = torch.randn(batch_size, z_dim)
+#fixed_z = fixed_z.view(fixed_z.size(0), fixed_z.size(1), 1, 1)
+#fake_images = G_update(fixed_z.to(device))
 
 ### Anogan
 def Anomaly_score(x, fake_img, D, Lambda=0.1):
@@ -282,5 +282,58 @@ batch_size = 5
 test_dataloader = torch.utils.data.DataLoader(
     test_dataset, batch_size=batch_size, shuffle=False)
 
-# .....ing
+## test 데이터
+batch_iterator = iter(test_dataloader)
+images = next(batch_iterator)
 
+
+### Anogan의 학습, 이상탐지
+## 이상감지 하려는 이미지
+x = images[0:5]
+x = x.to(device)
+
+## 이상감지 하려는 이미지를 생성하기 위한 초기난수
+z = torch.randn(5, 20).to(device)
+z = z.view(z.size(0), z.size(1), 1, 1)
+
+## 변수 z의 미분을 구할 수 있도록 지정
+z.requires_grad = True
+
+## 변수 z를 갱신하기 위한 최적화 함수
+z_optimizer = torch.optim.Adam([z], lr=1e-3)
+
+## z 구하기
+for epoch in range(5000+1):
+    fake_img = G_update(z)
+    loss, _, _ = Anomaly_score(x, fake_img, D_update, Lambda=0.1)
+
+    z_optimizer.zero_grad()
+    loss.backward()
+    z_optimizer.step()
+
+    if epoch % 1000 == 0:
+        print('epoch {} || total_loss:{:.0f} '.format(epoch, loss.item()))
+
+
+## 이미지 생성
+fake_img = G_update(z)
+
+## loss 계산
+loss, loss_each, residual_loss_each = Anomaly_score(
+    x, fake_img, D_update, Lambda=0.1)
+
+loss_each = loss_each.cpu().detach().numpy()
+print('total loss:', np.round(loss_each, 0))
+
+## 가시화
+fig = plt.figure(figsize=(15, 6))
+for i in range(0,5):
+    # test 데이터
+    plt.subplot(2, 5, i+1)
+    plt.imshow(images[i][0].cpu().detach().numpy(), 'gray')
+
+    # 생성된 데이터
+    plt.subplot(2, 5, 5+i+1)
+    plt.imshow(fake_img[i][0].cpu().detach().numpy(), 'gray')
+
+    plt.savefig("./result/result_" + str(i) + ".png")
