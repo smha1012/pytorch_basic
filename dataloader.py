@@ -16,10 +16,10 @@ def make_datapath_list():
     train_img_list = list()
 
     for img_idx in range(200):
-        img_path = "./data/img_78/img_7_" + str(img_idx)+'.jpg'
+        img_path = "./Your/data_1/path" + str(img_idx)+'.jpg'
         train_img_list.append(img_path)
 
-        img_path = "./data/img_78/img_8_" + str(img_idx)+'.jpg'
+        img_path = "./Your/data_2/path" + str(img_idx)+'.jpg'
         train_img_list.append(img_path)
 
     return train_img_list
