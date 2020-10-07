@@ -5,28 +5,9 @@
 #@Project : anogan
 #@Author : seungmin
 
-
-from torchvision.datasets import ImageFolder
 import torch.utils.data as data
 from torchvision import transforms
-
 from PIL import Image
-
-### ImageFolder 작성
-train_imgs = ImageFolder("./data/stl10_train",
-                         transform=transforms.Compose([transforms.RandomCrop(96),
-                                                       transforms.ToTensor()]))
-
-test_imgs = ImageFolder("./data/stl10_test",
-                        transform=transforms.Compose([transforms.RandomCrop(96),
-                                                      transforms.ToTensor()]))
-
-train_loader = data.DataLoader(train_imgs, batch_size=64, shuffle=True)
-test_loader = data.DataLoader(test_imgs, batch_size=64, shuffle=True)
-
-
-print(train_imgs.classes)
-print(train_imgs.class_to_idx)
 
 ### Dataloader 작성
 ##
@@ -59,7 +40,7 @@ class ImageTransform():
         return self.data_transform(img)
 
 ## 이미지 데이터셋 클래스, pytorch 데이터셋 클래스 상속
-class GAN_Img_Dataset(data.Dataset):
+class Img_Dataset(data.Dataset):
 
     def __init__(self, file_list, transform):
         self.file_list = file_list
