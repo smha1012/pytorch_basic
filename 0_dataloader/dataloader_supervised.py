@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 #-*- coding: utf-8 -*-
-#@Filename : dataloader
+#@Filename : 0_dataloader
 #@Date : 2020-07-02-15-22
 #@Project : anogan
 #@Author : seungmin
-
 
 from torchvision.datasets import ImageFolder
 import torch.utils.data as data
